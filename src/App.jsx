@@ -20,8 +20,8 @@ function App() {
 
       // Check if Telegram.WebApp is available (i.e., running inside Telegram app)
       if (window.Telegram && window.Telegram.WebApp) {
-        window.Telegram.WebApp.close();
         window.Telegram.WebApp.sendData(data.token); // Send token to Telegram bot
+        window.Telegram.WebApp.close();
       } else {
         console.warn('Telegram WebApp is not available. The user may not be in the Telegram app.');
         // Handle fallback behavior, like showing a message or redirecting to a Telegram app if needed.
