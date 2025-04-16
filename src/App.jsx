@@ -15,6 +15,12 @@ function App() {
       // Set the WebApp properties
       window.Telegram.WebApp.expand();
       window.Telegram.WebApp.ready();
+      
+      // Set background color to match Telegram theme
+      if (window.Telegram.WebApp.colorScheme) {
+        document.body.style.backgroundColor = 
+          window.Telegram.WebApp.colorScheme === 'dark' ? '#212121' : '#f4f4f4';
+      }
     } else {
       console.warn('Telegram WebApp is not available');
       setTelegramAvailable(false);
@@ -45,13 +51,24 @@ function App() {
         
         if (window.Telegram && window.Telegram.WebApp) {
           console.log('Preparing to send data to Telegram');
-          // Send properly formatted data as JSON string with token property
-          const dataToSend = JSON.stringify({ token: data.token });
-          console.log('Sending data to Telegram:', dataToSend);
           
-          window.Telegram.WebApp.sendData(dataToSend);
+          // Get user ID from Telegram WebApp
+          const userId = window.Telegram.WebApp.initDataUnsafe?.user?.id;
+          
+          // Send data as a simple object that Telegram can parse
+          const dataToSend = {
+            token: data.token,
+            user_id: userId
+          };
+          
+          console.log('Sending data to Telegram:', dataToSend);
+          window.Telegram.WebApp.sendData(JSON.stringify(dataToSend));
           console.log('Data sent, preparing to close WebApp');
-          window.Telegram.WebApp.close();
+          
+          // Add a small delay to ensure data is sent before closing
+          setTimeout(() => {
+            window.Telegram.WebApp.close();
+          }, 300);
         } else {
           console.error('Telegram WebApp not available for sending data');
           setError('Cannot communicate with Telegram. Please try again or restart the app.');
@@ -65,6 +82,68 @@ function App() {
       setError('Network error. Please check your connection and try again.');
     }
   };
+
+  // Dynamic styles based on Telegram theme
+  const getStyles = () => {
+    const isDark = window.Telegram?.WebApp?.colorScheme === 'dark';
+    
+    return {
+      container: {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '100vh',
+        backgroundColor: isDark ? '#212121' : '#f4f4f4',
+        fontFamily: 'Arial, sans-serif',
+        padding: '20px',
+        color: isDark ? '#ffffff' : '#000000',
+      },
+      header: {
+        fontSize: '24px',
+        marginBottom: '20px',
+        textAlign: 'center',
+      },
+      input: {
+        width: '250px',
+        padding: '12px',
+        margin: '10px 0',
+        border: '1px solid #ccc',
+        borderRadius: '4px',
+        fontSize: '16px',
+        backgroundColor: isDark ? '#333333' : '#ffffff',
+        color: isDark ? '#ffffff' : '#000000',
+      },
+      button: {
+        width: '250px',
+        padding: '12px',
+        marginTop: '15px',
+        backgroundColor: '#0088cc', // Telegram blue
+        color: 'white',
+        border: 'none',
+        borderRadius: '4px',
+        fontSize: '16px',
+        cursor: 'pointer',
+        fontWeight: 'bold',
+      },
+      errorText: {
+        color: '#ff4444',
+        marginTop: '15px',
+        textAlign: 'center',
+      },
+      warning: {
+        backgroundColor: '#ffd700',
+        color: '#333',
+        padding: '10px',
+        borderRadius: '4px',
+        marginBottom: '15px',
+        textAlign: 'center',
+        width: '250px',
+      }
+    };
+  };
+
+  const styles = getStyles();
 
   return (
     <div style={styles.container}>
@@ -93,57 +172,5 @@ function App() {
     </div>
   );
 }
-
-const styles = {
-  container: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: '100vh',
-    backgroundColor: '#f4f4f4',
-    fontFamily: 'Arial, sans-serif',
-    padding: '20px',
-  },
-  header: {
-    fontSize: '24px',
-    marginBottom: '20px',
-    textAlign: 'center',
-  },
-  input: {
-    width: '250px',
-    padding: '12px',
-    margin: '10px 0',
-    border: '1px solid #ccc',
-    borderRadius: '4px',
-    fontSize: '16px',
-  },
-  button: {
-    width: '250px',
-    padding: '12px',
-    marginTop: '15px',
-    backgroundColor: '#0088cc', // Telegram blue
-    color: 'white',
-    border: 'none',
-    borderRadius: '4px',
-    fontSize: '16px',
-    cursor: 'pointer',
-    fontWeight: 'bold',
-  },
-  errorText: {
-    color: 'red',
-    marginTop: '15px',
-    textAlign: 'center',
-  },
-  warning: {
-    backgroundColor: '#ffd700',
-    color: '#333',
-    padding: '10px',
-    borderRadius: '4px',
-    marginBottom: '15px',
-    textAlign: 'center',
-    width: '250px',
-  }
-};
 
 export default App;
