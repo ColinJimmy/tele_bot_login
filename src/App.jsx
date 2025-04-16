@@ -36,7 +36,6 @@ function App() {
         return;
       }
       
-      console.log('Attempting login...');
       const response = await fetch('https://api.voxcue.com/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -44,42 +43,37 @@ function App() {
       });
 
       const data = await response.json();
-      console.log('Login response received:', response.ok);
 
       if (response.ok && data.token) {
-        console.log('Login successful, token received');
-        
         if (window.Telegram && window.Telegram.WebApp) {
-          console.log('Preparing to send data to Telegram');
+          // Get the Telegram user ID from initData
+          const initData = window.Telegram.WebApp.initData;
+          const initDataUnsafe = window.Telegram.WebApp.initDataUnsafe;
+          const userId = initDataUnsafe?.user?.id;
           
-          // Get user ID from Telegram WebApp
-          const userId = window.Telegram.WebApp.initDataUnsafe?.user?.id;
+          console.log('Telegram User ID:', userId);
           
-          // Send data as a simple object that Telegram can parse
+          // Send both token and Telegram user ID
           const dataToSend = {
             token: data.token,
-            user_id: userId
+            telegram_user_id: userId,
+            initData: initData  // Send the entire initData for verification
           };
           
-          console.log('Sending data to Telegram:', dataToSend);
+          console.log('Sending data to bot:', dataToSend);
           window.Telegram.WebApp.sendData(JSON.stringify(dataToSend));
-          console.log('Data sent, preparing to close WebApp');
           
-          // Add a small delay to ensure data is sent before closing
+          // Close the WebApp after a small delay
           setTimeout(() => {
             window.Telegram.WebApp.close();
           }, 300);
-        } else {
-          console.error('Telegram WebApp not available for sending data');
-          setError('Cannot communicate with Telegram. Please try again or restart the app.');
         }
       } else {
-        console.error('Login failed:', data.error);
         setError(data.error || 'Invalid login credentials!');
       }
     } catch (err) {
       console.error('Login error:', err);
-      setError('Network error. Please check your connection and try again.');
+      setError('Network error. Please try again.');
     }
   };
 
